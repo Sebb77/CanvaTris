@@ -1,0 +1,30 @@
+= CanvaTris
+
+== A Tetris game using canvas created in react
+
+I created this small project to learn react and how to integrate canvas in react
+
+== Notes & Inspiration
+The project is an implementation of Tetris using React and HTML5 https://www.w3schools.com/html/html5_canvas.asp[Canvas].
+
+An alternative would be to use https://www.w3schools.com/graphics/svg_intro.asp[SVG] instead of the Canvas, but I'm leaving that for a future project. 
+
+Advantage of using canvases is that this component is that it has been developed specifically for graphic applicaitons. SVG is a scalable component at as such is more suitable for printing applications. Another difference is that canvas can only be modified trough scripting and its a pixel based raster graphics emelemtn, whilst SVG is vector based element composed of XML shapes and all drawing and effects can be achieved using normal xml elements. SVG images are normal text files.
+
+This project is heavily inspired by another Tetris implementation completely coded in pure JS done by a youtuber, https://www.youtube.com/channel/UC8A0M0eDttdB11MHxX58vXQ[Meth Meth Method] (Thanks for the awesome video). Source code can be found on https://github.com/meth-meth-method/tetris/blob/master/index.html and you can find a video tutorial on https://www.youtube.com/watch?v=H2aW5V46khA
+
+https://konvajs.org/[Konva.js] is a great library to use with canvas, but I wanted to learn how to use this element without use of extra frameworks. See https://lavrton.com/using-react-with-html5-canvas-871d07d8d753/ if you want to see how to use Konva components in React.
+
+== Source
+Feel free to copy, modify and fiddle around the code. 
+
+I removed all generated test files on purpose. I'm using this project as a testing environment for learning more about React and how canvases can be used so to use the learned knowledge for a bigger project.
+ 
+If you have suggestions on how things can be done in a better way, feel free to suggest or contact me =)
+
+== Compile and Run
+To compile the project and run use the following commands:
+[source]
+npm start
+
+This command will run a watch server that will refresh each time there are changes in the code.
