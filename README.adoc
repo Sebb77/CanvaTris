@@ -7,10 +7,31 @@ I created this small project to learn react and how to integrate canvas in react
 == Notes & Inspiration
 The project is an implementation of Tetris using React and HTML5 https://www.w3schools.com/html/html5_canvas.asp[Canvas].
 
+=== Canvas vs SVG
 An alternative would be to use https://www.w3schools.com/graphics/svg_intro.asp[SVG] instead of the Canvas, but I'm leaving that for a future project. 
 
 Advantage of using canvases is that this component is that it has been developed specifically for graphic applicaitons. SVG is a scalable component at as such is more suitable for printing applications. Another difference is that canvas can only be modified trough scripting and its a pixel based raster graphics emelemtn, whilst SVG is vector based element composed of XML shapes and all drawing and effects can be achieved using normal xml elements. SVG images are normal text files.
 
+=== Animations
+For a good understanding on how animations works in JS have a look at these posts:
+
+- https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+- http://www.javascriptkit.com/javatutors/requestanimationframe.shtml
+- https://stackoverflow.com/questions/52212703/using-requestanimationframe-in-react
+- https://css-tricks.com/using-requestanimationframe-with-react-hooks/
+- https://flaviocopes.com/requestanimationframe/
+- https://frontarm.com/james-k-nelson/introduction-to-react-effects/
+
+For some good animation examples see:
+- https://react.rocks/tag/RequestAnimationFrame
+
+In short, JS has three main methods for achieving animations:
+
+- *setTimeout*: so to recursively call a function on a specific time interval
+ - *setInterval*: to repeatedly execute some code
+ - *requestAnimationFrame*: a new function introduced in JS for this particular purpose. This method tells the browser that you wish to perform an animation and requests that the browser calls a specified function to update an animation before the next repaint. Code called via this method and running inside background tabs in your browser are either paused or slowed down significantly (to 2 frames per second or less) automatically to further save user system resources.
+
+=== Inspiration
 This project is heavily inspired by another Tetris implementation completely coded in pure JS done by a youtuber, https://www.youtube.com/channel/UC8A0M0eDttdB11MHxX58vXQ[Meth Meth Method] (Thanks for the awesome video). Source code can be found on https://github.com/meth-meth-method/tetris/blob/master/index.html and you can find a video tutorial on https://www.youtube.com/watch?v=H2aW5V46khA
 
 https://konvajs.org/[Konva.js] is a great library to use with canvas, but I wanted to learn how to use this element without use of extra frameworks. See https://lavrton.com/using-react-with-html5-canvas-871d07d8d753/ if you want to see how to use Konva components in React.

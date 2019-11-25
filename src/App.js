@@ -2,7 +2,9 @@ import React from 'react';
 import './App.css';
 
 const SQUARE_SIZE = 20;
+const DROP_INTERVAL = 1000; // ms
 const COLORS = [
+  null,     // Ignore first element due to array zero based index and numbers used in tetraminoes
   "#369DFF" // I
 , "#F25D07" // L
 , "#2D55AD" // J
@@ -19,41 +21,49 @@ const TETRAMINOES = [
     [0, 1, 0, 0]
   ],
   [ // L
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 1],
+    [0, 2, 0],
+    [0, 2, 0],
+    [0, 2, 2],
   ],
-  [ // Jconst TETRAMINOES_NAMES = ["I", "L", "J"]
+  [ // J
 
-    [0, 1, 0],
-    [0, 1, 0],
-    [1, 1, 0],
+    [0, 3, 0],
+    [0, 3, 0],
+    [3, 3, 0],
   ],
   [ // O
-    [1, 1],
-    [1, 1],
+    [4, 4],
+    [4, 4],
   ],
   [ // S
-    [0, 1, 1],
-    [1, 1, 0],
+    [0, 5, 5],
+    [5, 5, 0],
     [0, 0, 0],
   ],
   [ // Z
-    [1, 1, 0],
-    [0, 1, 1],
+    [6, 6, 0],
+    [0, 6, 6],
     [0, 0, 0],
   ],
   [ // T
-    [0, 1, 0],
-    [1, 1, 1],
+    [0, 7, 0],
+    [7, 7, 7],
     [0, 0, 0],
   ]
 ];
 
 class App extends React.Component {
-  
   constructor(props) {
     super(props);
+
+    // bind 'this' in the handleKeyPress function so that the keywork is actually connected to this class.
+    // if we do not bind this keyword, console.log(this) will return undefined or the document
+    // see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+
+    this.x = 0;
+    this.y = 0;
+    this.currentPiece = TETRAMINOES[1];
   }
 
   componentDidMount() {
@@ -61,7 +71,13 @@ class App extends React.Component {
     this.board = this.refs.Board;
     this.ctx = this.board.getContext("2d");
 
+    document.addEventListener("keydown", this.handleKeyPress, false);
+
     this.updateCanvas();
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyPress, false);
   }
 
   render() {  
@@ -71,6 +87,58 @@ class App extends React.Component {
         <canvas ref="Board" className="Board" width={200} height={400}/>
       </div>
     );
+  }
+
+  handleKeyPress(event) {
+    //console.log("pressed ", event.code, event.keyCode);
+    switch (event.keyCode) {
+      case 37: // left
+        this.movePiece(-1);
+        break;
+
+      case 39: // right
+        this.movePiece(1);
+        break;
+        
+      case 40: // down
+        this.dropPiece()
+        break;
+        
+      case 38: // up
+        this.rotatePiece();
+        break;
+    }
+  }
+
+  movePiece(direction) {
+    this.x += direction;
+    this.updateCanvas();
+  }
+
+  dropPiece() {
+    this.y += 1;
+    this.updateCanvas();
+  }
+
+  rotatePiece(dir = 1) {
+    for (let y = 0; y < this.currentPiece.length; ++y) {
+      for (let x = 0; x < y; ++x) {
+        [
+          this.currentPiece[x][y],
+          this.currentPiece[y][x],
+        ] = [
+          this.currentPiece[y][x],
+          this.currentPiece[x][y],
+        ];
+      }
+    }
+
+    if (dir > 0) {
+      this.currentPiece.forEach(row => row.reverse());
+    } else {
+      this.currentPiece.reverse();
+    }
+    this.updateCanvas();
   }
 
   drawBoard() {
@@ -99,15 +167,15 @@ class App extends React.Component {
 
   updateCanvas() {
     this.drawBoard();
-    this.drawPiece(0, 0, 1);
+    this.drawPiece(this.x, this.y, 1);
   }
 
-  drawPiece(xOffset, yOffset, piece) {
-    const t = TETRAMINOES[piece];
+  drawPiece(xOffset, yOffset) {
+    const t = this.currentPiece;
     t.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value !== 0) {
-          this.drawSquare(x + xOffset, y + yOffset, COLORS[piece]);
+          this.drawSquare(x + xOffset, y + yOffset, COLORS[value]);
         }
       });
     });
