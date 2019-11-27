@@ -52,6 +52,11 @@ const TETRAMINOES = [
   ]
 ];
 
+class Player {
+  pos = {x: 0, y: 0};
+  currentPiece = null;
+};
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -60,10 +65,9 @@ class App extends React.Component {
     // if we do not bind this keyword, console.log(this) will return undefined or the document
     // see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
     this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.updateCanvas = this.updateCanvas.bind(this);
 
-    this.x = 0;
-    this.y = 0;
-    this.currentPiece = TETRAMINOES[1];
+    this.resetGame();
   }
 
   componentDidMount() {
@@ -73,6 +77,7 @@ class App extends React.Component {
 
     document.addEventListener("keydown", this.handleKeyPress, false);
 
+    this.newPiece();
     this.updateCanvas();
   }
 
@@ -89,16 +94,32 @@ class App extends React.Component {
     );
   }
 
+  resetGame() {
+    this.dropCounter = 0;
+    this.lastTime = 0;
+    this.arena = this.createMatrix(10, 20);
+    
+    this.player = new Player();
+    this.newPiece();
+  }
+
+  createMatrix(w, h) {
+    const matrix = [];
+    while (h--)
+      matrix.push(new Array(w).fill(0));
+    return matrix;
+  }
+
   handleKeyPress(event) {
-    //console.log("pressed ", event.code, event.keyCode);
+    console.log("pressed ", event.code, event.keyCode);
     switch (event.keyCode) {
       case 37: // left
         this.movePiece(-1);
         break;
 
       case 39: // right
-        this.movePiece(1);
-        break;
+      this.movePiece(1);
+      break;
         
       case 40: // down
         this.dropPiece()
@@ -107,38 +128,123 @@ class App extends React.Component {
       case 38: // up
         this.rotatePiece();
         break;
+
+      default:
     }
   }
 
   movePiece(direction) {
-    this.x += direction;
-    this.updateCanvas();
+    this.player.pos.x += direction;
+    if (this.collide()) {
+      this.player.pos.x -= direction;
+    }
   }
 
   dropPiece() {
-    this.y += 1;
-    this.updateCanvas();
+    this.player.pos.y++;
+    if (this.collide()) {
+      this.player.pos.y--;
+      this.merge();
+      this.newPiece();
+    }
+    this.dropCounter = 0;
   }
 
   rotatePiece(dir = 1) {
-    for (let y = 0; y < this.currentPiece.length; ++y) {
+    const currPiece = TETRAMINOES[this.player.currentPiece];
+
+    for (let y = 0; y < currPiece.length; ++y) {
       for (let x = 0; x < y; ++x) {
         [
-          this.currentPiece[x][y],
-          this.currentPiece[y][x],
+          currPiece[x][y],
+          currPiece[y][x],
         ] = [
-          this.currentPiece[y][x],
-          this.currentPiece[x][y],
+          currPiece[y][x],
+          currPiece[x][y],
         ];
       }
     }
 
     if (dir > 0) {
-      this.currentPiece.forEach(row => row.reverse());
+      currPiece.forEach(row => row.reverse());
     } else {
-      this.currentPiece.reverse();
+      currPiece.reverse();
     }
-    this.updateCanvas();
+  }
+
+  updateCanvas(time = 0) {
+    const deltaTime = time - this.lastTime;
+    this.dropCounter += deltaTime;
+
+    if (this.dropCounter > DROP_INTERVAL) {
+      this.dropPiece();
+      // console.clear();
+      // console.table(this.arena);
+    }
+    
+    this.lastTime = time;
+
+    this.drawBoard();
+    this.drawMatrix(this.arena, {x: 0, y: 0});
+    this.drawPiece(this.player.pos, this.player.pos, 1);
+    
+    requestAnimationFrame(this.updateCanvas);
+  }
+
+  collide() {
+    const arena = this.arena;
+    const piece = TETRAMINOES[this.player.currentPiece];
+    const pos = this.player.pos;
+
+    for (let y = 0; y < piece.length; ++y) {
+        for (let x = 0; x < piece[y].length; ++x) {
+            if (piece[y][x] !== 0 &&
+               (arena[y + pos.y] &&
+                arena[y + pos.y][x + pos.x]) !== 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+  }
+
+  merge() {
+    const player = this.player;
+
+    TETRAMINOES[player.currentPiece].forEach((row, y) => {
+      row.forEach((value, x) => {
+          if (value !== 0) {
+              this.arena[y + player.pos.y][x + player.pos.x] = value;
+          }
+      });
+    });
+  }
+
+  newPiece() {
+    const player = this.player;
+    
+    // Give random piece to player
+    player.currentPiece = (TETRAMINOES.length * Math.random() | 0);
+
+    // Initialize position to top/center of arena
+    player.pos.y = 0;
+    player.pos.x = (this.arena[0].length / 2 | 0) - (TETRAMINOES[player.currentPiece].length / 2 | 0);
+
+    // if we have a collision when creating a new piece, it means that we have reached the top of the arena
+    if (this.collide()) {
+      // game over!!!
+      this.resetGame();
+    }
+  }
+
+  drawMatrix(matrix, offset) {
+    matrix.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value !== 0) {
+          this.drawSquare(x + offset.x, y + offset.y, value);
+        }
+      });
+    });
   }
 
   drawBoard() {
@@ -165,24 +271,19 @@ class App extends React.Component {
     }
   }
 
-  updateCanvas() {
-    this.drawBoard();
-    this.drawPiece(this.x, this.y, 1);
-  }
-
-  drawPiece(xOffset, yOffset) {
-    const t = this.currentPiece;
+  drawPiece(offset) {
+    const t = TETRAMINOES[this.player.currentPiece];
     t.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value !== 0) {
-          this.drawSquare(x + xOffset, y + yOffset, COLORS[value]);
+          this.drawSquare(x + offset.x, y + offset.y, value);
         }
       });
     });
   }
 
   drawSquare(x, y, color) {
-    this.ctx.fillStyle = color;
+    this.ctx.fillStyle = COLORS[color];
     this.ctx.fillRect(x * SQUARE_SIZE, 
                       y * SQUARE_SIZE,
                       SQUARE_SIZE,
