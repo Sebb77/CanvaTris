@@ -111,7 +111,7 @@ class App extends React.Component {
   }
 
   handleKeyPress(event) {
-    console.log("pressed ", event.code, event.keyCode);
+    //console.log("pressed ", event.code, event.keyCode);
     switch (event.keyCode) {
       case 37: // left
         this.movePiece(-1);
@@ -132,6 +132,29 @@ class App extends React.Component {
       default:
     }
   }
+  
+  checkLines() {
+    const arena = this.arena;
+
+    // check for completed lines
+    for (let y = arena.length -1; y > 0; --y) {
+      let exitLoop = false;
+      for (let x = 0; x < arena[y].length; ++x) {
+          if (arena[y][x] === 0) {
+            exitLoop = true;
+            continue;
+          }
+      }
+
+      if (exitLoop) {
+        continue;
+      } else {
+        const row = arena.splice(y, 1)[0].fill(0);
+        arena.unshift(row);
+        ++y;
+      }
+    }
+  }
 
   movePiece(direction) {
     this.player.pos.x += direction;
@@ -145,6 +168,7 @@ class App extends React.Component {
     if (this.collide()) {
       this.player.pos.y--;
       this.merge();
+      this.checkLines();
       this.newPiece();
     }
     this.dropCounter = 0;

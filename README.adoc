@@ -36,6 +36,10 @@ This project is heavily inspired by another Tetris implementation completely cod
 
 https://konvajs.org/[Konva.js] is a great library to use with canvas, but I wanted to learn how to use this element without use of extra frameworks. See https://lavrton.com/using-react-with-html5-canvas-871d07d8d753/ if you want to see how to use Konva components in React.
 
+=== JS Labels
+The original source code made use of labels for continuing nested loops. In general I never liked the use of labels in any programming language.
+Even if there is nothing in JS docs that says the contrary (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label), I would avoid using such statements just because it is easy to implement something that is still user readable and likely efficient instead.
+
 == Source
 Feel free to copy, modify and fiddle around the code. 
 
