@@ -32,16 +32,45 @@ In short, JS has three main methods for achieving animations:
  - *requestAnimationFrame*: a new function introduced in JS for this particular purpose. This method tells the browser that you wish to perform an animation and requests that the browser calls a specified function to update an animation before the next repaint. Code called via this method and running inside background tabs in your browser are either paused or slowed down significantly (to 2 frames per second or less) automatically to further save user system resources.
 
 === Inspiration
-This project is heavily inspired by another Tetris implementation completely coded in pure JS done by a youtuber, https://www.youtube.com/channel/UC8A0M0eDttdB11MHxX58vXQ[Meth Meth Method] (Thanks for the awesome video). Source code can be found on https://github.com/meth-meth-method/tetris/blob/master/index.html and you can find a video tutorial on https://www.youtube.com/watch?v=H2aW5V46khA
+I took my time researching different implementations of this game so to understand a bit how devs achieved the different challenges of this game. So I used bits and pieces taken from the different repos. 
 
+Having said that, this project is mainly inspired by a Tetris implementation completely coded in pure JS done by a youtuber, https://www.youtube.com/channel/UC8A0M0eDttdB11MHxX58vXQ[Meth Meth Method] (Thanks for the awesome video). Source code can be found on https://github.com/meth-meth-method/tetris/blob/master/index.html and you can find a video tutorial on https://www.youtube.com/watch?v=H2aW5V46khA
+
+Even though it was a clever method, I didn't like the rotate implemented in the source above. Instead I opted for a different approach used by many other developers. I.e. check which side of the board the piece is, and then check for a collistion. See https://github.com/CodeExplainedRepo/Tetris-JavaScript/blob/master/tetris.js
+
+=== Libraries for canvas animations
 https://konvajs.org/[Konva.js] is a great library to use with canvas, but I wanted to learn how to use this element without use of extra frameworks. See https://lavrton.com/using-react-with-html5-canvas-871d07d8d753/ if you want to see how to use Konva components in React.
 
 === JS Labels
 The original source code made use of labels for continuing nested loops. In general I never liked the use of labels in any programming language.
 Even if there is nothing in JS docs that says the contrary (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label), I would avoid using such statements just because it is easy to implement something that is still user readable and likely efficient instead.
 
+=== JS Arrays
+The original code returned a new array whenever creating a new piece. In my implementation I opted for having constant values for tetraminoes. This introduced a problem that rotating a piece would rotate the original declaration of the tetramino and thus spawning a new piece would have it already rotated. 
+
+In order to fix this I had to create a copy of the piece matrix so to modify only the player's current piece, and not the original declared tatramino.
+
+Since arrays in JS are reference values, when you try to copy it using the equal operation it will only copy the reference to the original array and not the value of the actual array. 
+
+It gets more complicated when you use multi-dimensional arrays because the different methods for cloning will only create a shallow copy, which means that only the first layer of the array is copied.
+
+In order to be sure to have created a deep copy of the matrix used throughout the code, I opted for the JSON method which converts the matrix in a string and then re-parses it into the matrix (If you know of better methods for doing this let me know :D ).
+
+see:
+
+- https://www.samanthaming.com/tidbits/35-es6-way-to-clone-an-array
+- https://www.freecodecamp.org/news/how-to-clone-an-array-in-javascript-1d3183468f6a/
+- https://dev.to/samanthaming/how-to-deep-clone-an-array-in-javascript-3cig
+
 == Source
-Feel free to copy, modify and fiddle around the code. 
+Feel free to copy, modify and fiddle around the code. Just let me know that this was good help for you :D
+
+Commits are frequent and commented in such a way to understand what I did in the change. I'm commenting the code where it gets complicated, or at least I try :)
+
+[quote, 'https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html']
+Commenting is the "art" of describing what your program is going to do in "high level" English statements. Commenting is best done before actually writing the code for your program.
+
+Initially I'm developing the full functionality of the application in one single component, and eventually I will try to separate the different parts of the application in separate component (still need to study exactly how i'm going to implement this :D ).
 
 I removed all generated test files on purpose. I'm using this project as a testing environment for learning more about React and how canvases can be used so to use the learned knowledge for a bigger project.
  
@@ -53,3 +82,12 @@ To compile the project and run use the following commands:
 npm start
 
 This command will run a watch server that will refresh each time there are changes in the code.
+
+Keys for playing are usual arrow keys:
+
+- Up : rotate piece
+- Down : move piece one slot down
+- Left/Right : move piece left or right
+- Esc : restart game
+
+Enjoy!

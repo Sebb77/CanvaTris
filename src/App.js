@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 
 const SQUARE_SIZE = 20;
+const COLS = 10;
 const DROP_INTERVAL = 1000; // ms
 const COLORS = [
   null,     // Ignore first element due to array zero based index and numbers used in tetraminoes
@@ -105,8 +106,10 @@ class App extends React.Component {
 
   createMatrix(w, h) {
     const matrix = [];
+
     while (h--)
       matrix.push(new Array(w).fill(0));
+
     return matrix;
   }
 
@@ -126,7 +129,11 @@ class App extends React.Component {
         break;
         
       case 38: // up
-        this.rotatePiece();
+        this.rotateAndCheck();
+        break;
+
+      case 27:
+        this.resetGame();
         break;
 
       default:
@@ -174,25 +181,43 @@ class App extends React.Component {
     this.dropCounter = 0;
   }
 
-  rotatePiece(dir = 1) {
-    const currPiece = TETRAMINOES[this.player.currentPiece];
+  rotatePiece(dir) {
+    // copy the tetramino array, rotate the copy and return it
+    const piece = this.copyMatrix(this.player.currentPiece);
 
-    for (let y = 0; y < currPiece.length; ++y) {
+    for (let y = 0; y < piece.length; ++y) {
       for (let x = 0; x < y; ++x) {
         [
-          currPiece[x][y],
-          currPiece[y][x],
+          piece[x][y],
+          piece[y][x],
         ] = [
-          currPiece[y][x],
-          currPiece[x][y],
+          piece[y][x],
+          piece[x][y],
         ];
       }
     }
 
     if (dir > 0) {
-      currPiece.forEach(row => row.reverse());
+      piece.forEach(row => row.reverse());
     } else {
-      currPiece.reverse();
+      piece.reverse();
+    }
+
+    return piece;
+  }
+
+  rotateAndCheck(dir = 1) {
+    const nextPattern = this.rotatePiece(dir);
+    this.player.currentPiece = nextPattern;
+
+    let kick = 0;
+    // check if piece is colliding with the wall when rotating. > COLS/2 = right border, thus move piece to the left
+    if(this.collide(this.player.pos, nextPattern))
+      kick = (this.x > COLS/2) ? -1 : 1;
+    
+    if(!this.collide({x: kick, y: 0}, nextPattern)) {
+      this.player.pos.x = this.player.pos.x + kick;
+      this.player.currentPiece = nextPattern;
     }
   }
 
@@ -215,11 +240,11 @@ class App extends React.Component {
     requestAnimationFrame(this.updateCanvas);
   }
 
-  collide() {
+  collide(pos, piece) {
+    pos = pos || this.player.pos;
+    piece = piece || this.player.currentPiece;
     const arena = this.arena;
-    const piece = TETRAMINOES[this.player.currentPiece];
-    const pos = this.player.pos;
-
+    
     for (let y = 0; y < piece.length; ++y) {
         for (let x = 0; x < piece[y].length; ++x) {
             if (piece[y][x] !== 0 &&
@@ -235,7 +260,7 @@ class App extends React.Component {
   merge() {
     const player = this.player;
 
-    TETRAMINOES[player.currentPiece].forEach((row, y) => {
+    player.currentPiece.forEach((row, y) => {
       row.forEach((value, x) => {
           if (value !== 0) {
               this.arena[y + player.pos.y][x + player.pos.x] = value;
@@ -248,11 +273,12 @@ class App extends React.Component {
     const player = this.player;
     
     // Give random piece to player
-    player.currentPiece = (TETRAMINOES.length * Math.random() | 0);
+    const randomPiece = (TETRAMINOES.length * Math.random() | 0);
+    player.currentPiece = this.copyMatrix(TETRAMINOES[randomPiece]);
 
     // Initialize position to top/center of arena
     player.pos.y = 0;
-    player.pos.x = (this.arena[0].length / 2 | 0) - (TETRAMINOES[player.currentPiece].length / 2 | 0);
+    player.pos.x = (this.arena[0].length / 2 | 0) - (player.currentPiece.length / 2 | 0);
 
     // if we have a collision when creating a new piece, it means that we have reached the top of the arena
     if (this.collide()) {
@@ -296,7 +322,7 @@ class App extends React.Component {
   }
 
   drawPiece(offset) {
-    const t = TETRAMINOES[this.player.currentPiece];
+    const t = this.player.currentPiece;
     t.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value !== 0) {
@@ -320,6 +346,10 @@ class App extends React.Component {
                         SQUARE_SIZE,
                         SQUARE_SIZE
     );
+  }
+
+  copyMatrix(matrix) {
+    return JSON.parse(JSON.stringify(matrix));
   }
 }
 
